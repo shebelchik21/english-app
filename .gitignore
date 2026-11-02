@@ -10,9 +10,6 @@ node_modules/
 backend/.env
 frontend/.env
 
-# Prisma
-backend/src/prisma/migrations/
-
 # Build outputs
 backend/dist/
 frontend/dist/
