@@ -1,6 +1,9 @@
 import axios from 'axios';
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+// В production на Vercel используем относительный путь /api
+// В development используем localhost:3001
+const BASE_URL = import.meta.env.VITE_API_URL ||
+  (import.meta.env.MODE === 'production' ? '/api' : 'http://localhost:3001/api');
 
 const api = axios.create({
   baseURL: BASE_URL,

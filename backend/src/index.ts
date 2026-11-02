@@ -14,7 +14,11 @@ const PORT = process.env.PORT || 3001;
 
 // Middleware
 app.use(cors({
-  origin: ['http://localhost:5173', 'https://*.telegram.org'],
+  origin: [
+    'http://localhost:5173',
+    'https://*.telegram.org',
+    /\.vercel\.app$/  // Разрешить все Vercel домены
+  ],
   credentials: true,
 }));
 app.use(express.json());
