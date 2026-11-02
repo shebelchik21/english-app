@@ -4,7 +4,7 @@
     "backend": {
       "root": "backend",
       "framework": "express",
-      "installCommand": "npm install && npx prisma generate",
+      "installCommand": "npm install --include=dev && npx prisma generate",
       "buildCommand": "npm run build"
     },
     "frontend": {
