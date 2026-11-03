@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { CalendarWidget } from '../components/CalendarWidget';
 
 export default function CalendarPage() {
   const router = useRouter();
@@ -24,13 +25,7 @@ export default function CalendarPage() {
             <span>Календарь</span>
           </h1>
 
-          <div className="text-center py-12">
-            <div className="text-6xl mb-4">📅</div>
-            <p className="text-xl text-gray-600 mb-2">Страница в разработке</p>
-            <p className="text-sm text-gray-500">
-              Здесь будет календарь занятий
-            </p>
-          </div>
+          <CalendarWidget />
         </div>
       </div>
     </div>
