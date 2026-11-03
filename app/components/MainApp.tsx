@@ -9,6 +9,26 @@ export function MainApp() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    const registerUser = async (user: any) => {
+      try {
+        await fetch('/api/users/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            telegramId: user.id,
+            firstName: user.first_name,
+            lastName: user.last_name,
+            username: user.username,
+            languageCode: user.language_code,
+            isPremium: user.is_premium,
+            photoUrl: user.photo_url,
+          }),
+        });
+      } catch (error) {
+        console.error('Failed to register user:', error);
+      }
+    };
+
     if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
       const tg = window.Telegram.WebApp;
       const webAppUser = tg.initDataUnsafe?.user;
@@ -19,6 +39,9 @@ export function MainApp() {
         // Получаем список админов из переменной окружения
         const adminIds = process.env.NEXT_PUBLIC_ADMIN_IDS?.split(',').map(id => Number(id.trim())) || [];
         setIsAdmin(adminIds.includes(webAppUser.id));
+
+        // Регистрируем/обновляем пользователя в БД
+        registerUser(webAppUser);
       }
 
       setIsLoading(false);
