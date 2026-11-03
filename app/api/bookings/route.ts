@@ -88,8 +88,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Проверяем, есть ли доступные занятия
-    if (user.lessonsRemaining <= 0) {
+    // Проверяем, есть ли доступные занятия (только для не-админов)
+    if (!user.isAdmin && user.lessonsRemaining <= 0) {
       return NextResponse.json(
         { error: 'No lessons remaining' },
         { status: 400 }
@@ -111,24 +111,37 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Создаем бронирование и уменьшаем количество занятий
-    const [booking] = await prisma.$transaction([
-      prisma.booking.create({
+    // Создаем бронирование и уменьшаем количество занятий (только для не-админов)
+    let booking;
+    if (user.isAdmin) {
+      // Админ бронирует без списания занятий
+      booking = await prisma.booking.create({
         data: {
           userId: user.id,
           date: new Date(date),
           time: new Date(`1970-01-01T${time}:00.000Z`),
         },
-      }),
-      prisma.user.update({
-        where: { id: user.id },
-        data: {
-          lessonsRemaining: {
-            decrement: 1,
+      });
+    } else {
+      // Студент бронирует с списанием занятия
+      [booking] = await prisma.$transaction([
+        prisma.booking.create({
+          data: {
+            userId: user.id,
+            date: new Date(date),
+            time: new Date(`1970-01-01T${time}:00.000Z`),
           },
-        },
-      }),
-    ]);
+        }),
+        prisma.user.update({
+          where: { id: user.id },
+          data: {
+            lessonsRemaining: {
+              decrement: 1,
+            },
+          },
+        }),
+      ]);
+    }
 
     return NextResponse.json({
       success: true,
@@ -177,28 +190,50 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    // Проверяем права (пользователь может отменить только свое бронирование)
-    if (booking.user.telegramId.toString() !== telegramId) {
+    // Проверяем права (пользователь может отменить только свое бронирование, админ может отменить любое)
+    const requestingUser = await prisma.user.findUnique({
+      where: { telegramId: BigInt(telegramId) },
+    });
+
+    if (!requestingUser) {
+      return NextResponse.json(
+        { error: 'User not found' },
+        { status: 404 }
+      );
+    }
+
+    const isOwnBooking = booking.user.telegramId.toString() === telegramId;
+    const canCancel = isOwnBooking || requestingUser.isAdmin;
+
+    if (!canCancel) {
       return NextResponse.json(
         { error: 'Access denied' },
         { status: 403 }
       );
     }
 
-    // Удаляем бронирование и возвращаем занятие
-    await prisma.$transaction([
-      prisma.booking.delete({
+    // Удаляем бронирование и возвращаем занятие (только если это не админ)
+    if (booking.user.isAdmin) {
+      // Если бронирование было создано админом, просто удаляем без возврата занятий
+      await prisma.booking.delete({
         where: { id: Number(bookingId) },
-      }),
-      prisma.user.update({
-        where: { id: booking.userId },
-        data: {
-          lessonsRemaining: {
-            increment: 1,
+      });
+    } else {
+      // Если бронирование студента, возвращаем занятие
+      await prisma.$transaction([
+        prisma.booking.delete({
+          where: { id: Number(bookingId) },
+        }),
+        prisma.user.update({
+          where: { id: booking.userId },
+          data: {
+            lessonsRemaining: {
+              increment: 1,
+            },
           },
-        },
-      }),
-    ]);
+        }),
+      ]);
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {
