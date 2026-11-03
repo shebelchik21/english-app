@@ -11,18 +11,19 @@ datasource db {
 }
 
 model User {
-  id            Int       @id @default(autoincrement())
-  telegramId    BigInt    @unique
-  firstName     String
-  lastName      String?
-  username      String?
-  languageCode  String?
-  isPremium     Boolean   @default(false)
-  photoUrl      String?
-  isAdmin       Boolean   @default(false)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  lastVisitAt   DateTime  @default(now())
+  id               Int       @id @default(autoincrement())
+  telegramId       BigInt    @unique
+  firstName        String
+  lastName         String?
+  username         String?
+  languageCode     String?
+  isPremium        Boolean   @default(false)
+  photoUrl         String?
+  isAdmin          Boolean   @default(false)
+  lessonsRemaining Int       @default(0)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  lastVisitAt      DateTime  @default(now())
 
   @@map("users")
 }

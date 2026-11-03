@@ -12,6 +12,7 @@ interface Student {
   isPremium: boolean;
   photoUrl?: string;
   isAdmin: boolean;
+  lessonsRemaining: number;
   createdAt: string;
   lastVisitAt: string;
 }
@@ -22,8 +23,13 @@ interface StudentsListProps {
 
 export function StudentsList({ telegramId }: StudentsListProps) {
   const [students, setStudents] = useState<Student[]>([]);
+  const [filteredStudents, setFilteredStudents] = useState<Student[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
+  const [lessonsToAdd, setLessonsToAdd] = useState<string>('');
+  const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
     const fetchStudents = async () => {
@@ -42,6 +48,7 @@ export function StudentsList({ telegramId }: StudentsListProps) {
 
         const data = await response.json();
         setStudents(data);
+        setFilteredStudents(data);
       } catch (err) {
         setError(`Ошибка при загрузке данных: ${err instanceof Error ? err.message : 'Unknown error'}`);
         console.error(err);
@@ -52,6 +59,69 @@ export function StudentsList({ telegramId }: StudentsListProps) {
 
     fetchStudents();
   }, [telegramId]);
+
+  useEffect(() => {
+    if (searchQuery.trim() === '') {
+      setFilteredStudents(students);
+    } else {
+      const query = searchQuery.toLowerCase();
+      const filtered = students.filter(student =>
+        student.firstName.toLowerCase().includes(query) ||
+        student.lastName?.toLowerCase().includes(query) ||
+        student.username?.toLowerCase().includes(query)
+      );
+      setFilteredStudents(filtered);
+    }
+  }, [searchQuery, students]);
+
+  const handleAddLessons = async () => {
+    if (!selectedStudent || !lessonsToAdd) return;
+
+    const amount = parseInt(lessonsToAdd);
+    if (isNaN(amount) || amount === 0) {
+      alert('Введите корректное число');
+      return;
+    }
+
+    setIsUpdating(true);
+    try {
+      const response = await fetch('/api/users/update-lessons', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          adminTelegramId: telegramId,
+          studentTelegramId: selectedStudent.telegramId,
+          lessonsToAdd: amount,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update lessons');
+      }
+
+      const data = await response.json();
+
+      // Обновляем локальное состояние
+      setStudents(prev => prev.map(s =>
+        s.telegramId === selectedStudent.telegramId
+          ? { ...s, lessonsRemaining: data.lessonsRemaining }
+          : s
+      ));
+
+      setSelectedStudent({
+        ...selectedStudent,
+        lessonsRemaining: data.lessonsRemaining,
+      });
+
+      setLessonsToAdd('');
+      alert(`Успешно ${amount > 0 ? 'добавлено' : 'удалено'} ${Math.abs(amount)} занятий`);
+    } catch (err) {
+      alert(`Ошибка: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -94,19 +164,129 @@ export function StudentsList({ telegramId }: StudentsListProps) {
     );
   }
 
+  // Модальное окно для управления занятиями
+  if (selectedStudent) {
+    return (
+      <div className="w-full">
+        <button
+          onClick={() => setSelectedStudent(null)}
+          className="mb-4 flex items-center gap-2 text-gray-600 hover:text-gray-800"
+        >
+          <span className="text-xl">←</span>
+          <span>Назад к списку</span>
+        </button>
+
+        <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <div className="flex items-start gap-4 mb-6">
+            {selectedStudent.photoUrl ? (
+              <img
+                src={selectedStudent.photoUrl}
+                alt={selectedStudent.firstName}
+                className="w-16 h-16 rounded-full border-2 border-blue-500"
+              />
+            ) : (
+              <div className="w-16 h-16 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold text-2xl">
+                {selectedStudent.firstName[0]}
+              </div>
+            )}
+
+            <div className="flex-1">
+              <h2 className="text-2xl font-bold text-gray-800 mb-1">
+                {selectedStudent.firstName} {selectedStudent.lastName || ''}
+              </h2>
+              {selectedStudent.username && (
+                <p className="text-gray-500">@{selectedStudent.username}</p>
+              )}
+            </div>
+          </div>
+
+          <div className="mb-6 p-4 bg-gradient-to-br from-blue-50 to-indigo-100 rounded-lg">
+            <p className="text-sm text-gray-600 mb-2">Оставшиеся занятия:</p>
+            <p className="text-4xl font-bold text-blue-600">
+              {selectedStudent.lessonsRemaining}
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Добавить/удалить занятия:
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="number"
+                  value={lessonsToAdd}
+                  onChange={(e) => setLessonsToAdd(e.target.value)}
+                  placeholder="Введите количество (например, 5 или -2)"
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  disabled={isUpdating}
+                />
+                <button
+                  onClick={handleAddLessons}
+                  disabled={isUpdating || !lessonsToAdd}
+                  className="px-6 py-2 bg-blue-500 text-white rounded-lg font-semibold hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                >
+                  {isUpdating ? 'Сохранение...' : 'Применить'}
+                </button>
+              </div>
+              <p className="text-xs text-gray-500 mt-2">
+                Положительное число для добавления, отрицательное для удаления
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-6 pt-6 border-t border-gray-200 space-y-2 text-sm text-gray-600">
+            <div>
+              <span className="font-medium">ID:</span> {selectedStudent.telegramId}
+            </div>
+            {selectedStudent.languageCode && (
+              <div>
+                <span className="font-medium">Язык:</span> {selectedStudent.languageCode.toUpperCase()}
+              </div>
+            )}
+            <div>
+              <span className="font-medium">Регистрация:</span> {formatDate(selectedStudent.createdAt)}
+            </div>
+            <div>
+              <span className="font-medium">Последний визит:</span> {getTimeSinceLastVisit(selectedStudent.lastVisitAt)}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full">
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-4 flex items-center justify-between gap-4">
         <h2 className="text-xl font-bold text-gray-800">
           Всего учеников: {students.length}
         </h2>
       </div>
 
+      {/* Поиск */}
+      <div className="mb-4">
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="🔍 Поиск по имени или нику..."
+          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
+
+      {filteredStudents.length === 0 && searchQuery && (
+        <div className="p-4 bg-gray-50 rounded-lg text-center text-gray-500">
+          Ничего не найдено
+        </div>
+      )}
+
       <div className="space-y-3">
-        {students.map((student) => (
+        {filteredStudents.map((student) => (
           <div
             key={student.id}
-            className="p-4 bg-white border border-gray-200 rounded-lg hover:shadow-md transition-shadow"
+            onClick={() => setSelectedStudent(student)}
+            className="p-4 bg-white border border-gray-200 rounded-lg hover:shadow-md transition-shadow cursor-pointer"
           >
             <div className="flex items-start gap-3">
               {student.photoUrl ? (
@@ -140,27 +320,24 @@ export function StudentsList({ telegramId }: StudentsListProps) {
                   <p className="text-sm text-gray-500 mb-1">@{student.username}</p>
                 )}
 
-                <div className="flex flex-wrap gap-3 text-xs text-gray-500 mt-2">
-                  <div>
-                    <span className="font-medium">ID:</span> {student.telegramId}
+                <div className="flex items-center gap-4 text-xs text-gray-500 mt-2">
+                  <div className="flex items-center gap-1">
+                    <span className="font-medium">Занятий:</span>
+                    <span className={`font-bold ${student.lessonsRemaining === 0 ? 'text-red-500' : 'text-green-600'}`}>
+                      {student.lessonsRemaining}
+                    </span>
                   </div>
-                  {student.languageCode && (
-                    <div>
-                      <span className="font-medium">Язык:</span> {student.languageCode.toUpperCase()}
-                    </div>
-                  )}
                   <div>
-                    <span className="font-medium">Регистрация:</span>{' '}
-                    {formatDate(student.createdAt)}
-                  </div>
-                </div>
-
-                <div className="mt-2 text-xs">
-                  <span className="text-gray-500">Последний визит: </span>
-                  <span className="font-medium text-gray-700">
+                    <span className="font-medium">Последний визит:</span>{' '}
                     {getTimeSinceLastVisit(student.lastVisitAt)}
-                  </span>
+                  </div>
                 </div>
+              </div>
+
+              <div className="text-gray-400">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
               </div>
             </div>
           </div>
