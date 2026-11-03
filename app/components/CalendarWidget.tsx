@@ -92,11 +92,9 @@ function Calendar({ currentDate }: CalendarProps) {
 
 export function CalendarWidget() {
   const [currentDate, setCurrentDate] = useState<Date | null>(null);
-  const [mounted, setMounted] = useState(false);
 
   // Инициализируем дату только на клиенте
   useEffect(() => {
-    setMounted(true);
     setCurrentDate(new Date());
   }, []);
 
@@ -114,9 +112,22 @@ export function CalendarWidget() {
     setCurrentDate(new Date());
   };
 
-  // Показываем календарь только после монтирования
-  if (!mounted || !currentDate) {
-    return null;
+  // Показываем скелетон пока не загрузилось
+  if (!currentDate) {
+    return (
+      <div className="w-full">
+        <div className="flex items-center justify-between mb-6">
+          <div className="w-10 h-10 bg-gray-200 rounded-full animate-pulse"></div>
+          <div className="w-20 h-8 bg-gray-200 rounded animate-pulse"></div>
+          <div className="w-10 h-10 bg-gray-200 rounded-full animate-pulse"></div>
+        </div>
+        <div className="grid grid-cols-7 gap-2">
+          {Array.from({ length: 35 }).map((_, i) => (
+            <div key={i} className="aspect-square bg-gray-200 rounded-lg animate-pulse"></div>
+          ))}
+        </div>
+      </div>
+    );
   }
 
   return (

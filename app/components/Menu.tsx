@@ -25,13 +25,15 @@ export function Menu({ isAdmin, telegramId }: MenuProps) {
           <span className="text-xl">→</span>
         </button>
 
-        <button
-          onClick={() => router.push(`/lessons?telegramId=${telegramId}`)}
-          className="w-full p-4 bg-purple-500 hover:bg-purple-600 text-white rounded-lg font-semibold transition-colors flex items-center justify-between"
-        >
-          <span>📚 Оставшиеся занятия</span>
-          <span className="text-xl">→</span>
-        </button>
+        {!isAdmin && (
+          <button
+            onClick={() => router.push(`/lessons?telegramId=${telegramId}`)}
+            className="w-full p-4 bg-purple-500 hover:bg-purple-600 text-white rounded-lg font-semibold transition-colors flex items-center justify-between"
+          >
+            <span>📚 Оставшиеся занятия</span>
+            <span className="text-xl">→</span>
+          </button>
+        )}
 
         {isAdmin && (
           <button
