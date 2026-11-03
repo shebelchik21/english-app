@@ -72,12 +72,12 @@ function Calendar({ currentDate }: CalendarProps) {
             <div
               key={index}
               className={`
-                aspect-square flex items-center justify-center rounded-lg text-sm
+                aspect-square flex items-center justify-center rounded-lg text-sm font-medium
                 ${day === null
                   ? 'bg-transparent'
                   : isToday
                     ? 'bg-blue-500 text-white font-bold'
-                    : 'bg-gray-50 hover:bg-gray-100 cursor-pointer'
+                    : 'bg-gray-50 hover:bg-gray-100 cursor-pointer text-gray-900'
                 }
               `}
             >
@@ -92,9 +92,11 @@ function Calendar({ currentDate }: CalendarProps) {
 
 export function CalendarWidget() {
   const [currentDate, setCurrentDate] = useState<Date | null>(null);
+  const [mounted, setMounted] = useState(false);
 
   // Инициализируем дату только на клиенте
   useEffect(() => {
+    setMounted(true);
     setCurrentDate(new Date());
   }, []);
 
@@ -112,13 +114,9 @@ export function CalendarWidget() {
     setCurrentDate(new Date());
   };
 
-  // Показываем загрузку пока дата не инициализирована
-  if (!currentDate) {
-    return (
-      <div className="w-full text-center py-8">
-        <p className="text-gray-600">Загрузка календаря...</p>
-      </div>
-    );
+  // Показываем календарь только после монтирования
+  if (!mounted || !currentDate) {
+    return null;
   }
 
   return (
