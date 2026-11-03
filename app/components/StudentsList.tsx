@@ -31,10 +31,11 @@ export function StudentsList({ telegramId }: StudentsListProps) {
         const response = await fetch(`/api/users/list?telegramId=${telegramId}`);
 
         if (!response.ok) {
+          const errorData = await response.json();
           if (response.status === 403) {
             setError('Доступ запрещен. Только для администраторов.');
           } else {
-            setError('Ошибка при загрузке списка учеников');
+            setError(`Ошибка при загрузке списка учеников: ${errorData.details || errorData.error || 'Unknown error'}`);
           }
           return;
         }
@@ -42,7 +43,7 @@ export function StudentsList({ telegramId }: StudentsListProps) {
         const data = await response.json();
         setStudents(data);
       } catch (err) {
-        setError('Ошибка при загрузке данных');
+        setError(`Ошибка при загрузке данных: ${err instanceof Error ? err.message : 'Unknown error'}`);
         console.error(err);
       } finally {
         setIsLoading(false);
