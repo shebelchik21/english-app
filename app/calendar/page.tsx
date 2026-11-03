@@ -26,22 +26,24 @@ function CalendarContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-4">
       <div className="max-w-4xl mx-auto py-8">
         <div className="mb-6">
           <button
             onClick={() => router.push('/')}
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:text-gray-900 bg-white hover:bg-gray-50 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 active:scale-95 font-medium"
           >
             <span className="text-xl">←</span>
             <span>Назад в меню</span>
           </button>
         </div>
 
-        <div className="bg-white rounded-xl shadow-lg p-6">
-          <h1 className="text-2xl font-bold mb-6 text-gray-800 flex items-center gap-2">
-            <span>📅</span>
-            <span>Календарь</span>
+        <div className="bg-white rounded-2xl shadow-2xl p-6 border-2 border-gray-100">
+          <h1 className="text-3xl font-bold mb-6 flex items-center gap-3">
+            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-md">
+              <span className="text-2xl">📅</span>
+            </div>
+            <span className="bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">Календарь</span>
           </h1>
 
           <CalendarWidget telegramId={Number(telegramId)} isAdmin={isAdmin} />

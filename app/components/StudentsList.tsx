@@ -151,15 +151,18 @@ export function StudentsList({ telegramId }: StudentsListProps) {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-8">
-        <div className="text-gray-600">Загрузка...</div>
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-12 h-12 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin"></div>
+          <p className="text-gray-600 font-medium">Загрузка...</p>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="p-6 bg-red-50 border border-red-200 rounded-lg">
-        <p className="text-red-800">{error}</p>
+      <div className="p-6 bg-gradient-to-br from-red-50 to-pink-50 border-2 border-red-200 rounded-2xl">
+        <p className="text-red-800 font-medium">{error}</p>
       </div>
     );
   }
@@ -170,46 +173,53 @@ export function StudentsList({ telegramId }: StudentsListProps) {
       <div className="w-full">
         <button
           onClick={() => setSelectedStudent(null)}
-          className="mb-4 flex items-center gap-2 text-gray-600 hover:text-gray-800"
+          className="mb-6 flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors"
         >
           <span className="text-xl">←</span>
-          <span>Назад к списку</span>
+          <span className="font-medium">Назад к списку</span>
         </button>
 
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
+        <div className="bg-white rounded-2xl shadow-lg border-2 border-gray-100 p-6">
           <div className="flex items-start gap-4 mb-6">
             {selectedStudent.photoUrl ? (
               <img
                 src={selectedStudent.photoUrl}
                 alt={selectedStudent.firstName}
-                className="w-16 h-16 rounded-full border-2 border-blue-500"
+                className="w-20 h-20 rounded-2xl border-4 border-purple-500 shadow-md"
               />
             ) : (
-              <div className="w-16 h-16 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold text-2xl">
+              <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white font-bold text-3xl shadow-md">
                 {selectedStudent.firstName[0]}
               </div>
             )}
 
             <div className="flex-1">
-              <h2 className="text-2xl font-bold text-gray-800 mb-1">
+              <h2 className="text-2xl font-bold text-gray-900 mb-1">
                 {selectedStudent.firstName} {selectedStudent.lastName || ''}
               </h2>
               {selectedStudent.username && (
-                <p className="text-gray-500">@{selectedStudent.username}</p>
+                <p className="text-gray-600 font-medium">@{selectedStudent.username}</p>
               )}
             </div>
           </div>
 
-          <div className="mb-6 p-4 bg-gradient-to-br from-blue-50 to-indigo-100 rounded-lg">
-            <p className="text-sm text-gray-600 mb-2">Оставшиеся занятия:</p>
-            <p className="text-4xl font-bold text-gray-900">
-              {selectedStudent.lessonsRemaining}
-            </p>
+          <div className="mb-6 p-5 bg-gradient-to-br from-purple-50 to-indigo-50 border-2 border-purple-100 rounded-2xl shadow-sm">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-md">
+                <span className="text-2xl">📚</span>
+              </div>
+              <div>
+                <p className="text-xs font-medium text-gray-600 mb-0.5">Оставшиеся занятия</p>
+                <p className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+                  {selectedStudent.lessonsRemaining}
+                </p>
+              </div>
+            </div>
           </div>
 
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-bold text-gray-800 mb-3">
                 Добавить/удалить занятия:
               </label>
               <input
@@ -217,36 +227,40 @@ export function StudentsList({ telegramId }: StudentsListProps) {
                 value={lessonsToAdd}
                 onChange={(e) => setLessonsToAdd(e.target.value)}
                 placeholder="Введите количество (например, 5 или -2)"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900 font-medium transition-all"
                 disabled={isUpdating}
               />
-              <p className="text-xs text-gray-500 mt-2 mb-3">
-                Положительное число для добавления, отрицательное для удаления
+              <p className="text-xs text-gray-600 mt-2 mb-3 font-medium">
+                💡 Положительное число для добавления, отрицательное для удаления
               </p>
               <button
                 onClick={handleAddLessons}
                 disabled={isUpdating || !lessonsToAdd}
-                className="w-full py-3 bg-blue-500 text-white rounded-lg font-semibold hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                className="w-full py-3.5 bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white rounded-xl font-bold shadow-lg hover:shadow-xl disabled:from-gray-300 disabled:to-gray-300 disabled:cursor-not-allowed disabled:shadow-none transition-all duration-200 active:scale-95"
               >
                 {isUpdating ? 'Сохранение...' : 'Применить'}
               </button>
             </div>
           </div>
 
-          <div className="mt-6 pt-6 border-t border-gray-200 space-y-2 text-sm text-gray-600">
-            <div>
-              <span className="font-medium">ID:</span> {selectedStudent.telegramId}
+          <div className="mt-6 pt-6 border-t-2 border-gray-200 space-y-3 text-sm">
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-gray-700">ID:</span>
+              <span className="text-gray-600">{selectedStudent.telegramId}</span>
             </div>
             {selectedStudent.languageCode && (
-              <div>
-                <span className="font-medium">Язык:</span> {selectedStudent.languageCode.toUpperCase()}
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-gray-700">Язык:</span>
+                <span className="text-gray-600">{selectedStudent.languageCode.toUpperCase()}</span>
               </div>
             )}
-            <div>
-              <span className="font-medium">Регистрация:</span> {formatDate(selectedStudent.createdAt)}
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-gray-700">Регистрация:</span>
+              <span className="text-gray-600">{formatDate(selectedStudent.createdAt)}</span>
             </div>
-            <div>
-              <span className="font-medium">Последний визит:</span> {getTimeSinceLastVisit(selectedStudent.lastVisitAt)}
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-gray-700">Последний визит:</span>
+              <span className="text-gray-600">{getTimeSinceLastVisit(selectedStudent.lastVisitAt)}</span>
             </div>
           </div>
         </div>
@@ -256,10 +270,18 @@ export function StudentsList({ telegramId }: StudentsListProps) {
 
   return (
     <div className="w-full">
-      <div className="mb-4 flex items-center justify-between gap-4">
-        <h2 className="text-xl font-bold text-gray-800">
-          Всего учеников: {students.length}
-        </h2>
+      <div className="mb-6 p-4 bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-100 rounded-2xl shadow-sm">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-md">
+            <span className="text-2xl">👥</span>
+          </div>
+          <div>
+            <p className="text-xs font-medium text-gray-600">Всего учеников</p>
+            <p className="text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+              {students.length}
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Поиск */}
@@ -269,13 +291,13 @@ export function StudentsList({ telegramId }: StudentsListProps) {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="🔍 Поиск по имени или нику..."
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-3.5 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 font-medium transition-all"
         />
       </div>
 
       {filteredStudents.length === 0 && searchQuery && (
-        <div className="p-4 bg-gray-50 rounded-lg text-center text-gray-500">
-          Ничего не найдено
+        <div className="p-5 bg-gradient-to-br from-gray-50 to-gray-100 border-2 border-gray-200 rounded-2xl text-center">
+          <p className="text-gray-600 font-medium">Ничего не найдено</p>
         </div>
       )}
 
@@ -284,57 +306,56 @@ export function StudentsList({ telegramId }: StudentsListProps) {
           <div
             key={student.id}
             onClick={() => setSelectedStudent(student)}
-            className="p-4 bg-white border border-gray-200 rounded-lg hover:shadow-md transition-shadow cursor-pointer"
+            className="p-4 bg-white border-2 border-gray-200 rounded-2xl hover:border-purple-300 hover:shadow-lg transition-all duration-200 cursor-pointer active:scale-98"
           >
             <div className="flex items-start gap-3">
               {student.photoUrl ? (
                 <img
                   src={student.photoUrl}
                   alt={student.firstName}
-                  className="w-12 h-12 rounded-full border-2 border-blue-500"
+                  className="w-14 h-14 rounded-xl border-3 border-purple-500 shadow-md"
                 />
               ) : (
-                <div className="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold text-lg">
+                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white font-bold text-xl shadow-md">
                   {student.firstName[0]}
                 </div>
               )}
 
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
-                  <h3 className="font-semibold text-gray-800 truncate">
+                  <h3 className="font-bold text-gray-900 truncate text-base">
                     {student.firstName} {student.lastName || ''}
                   </h3>
                   {student.isAdmin && (
-                    <span className="px-2 py-0.5 bg-amber-100 text-amber-800 text-xs font-medium rounded">
+                    <span className="px-2 py-1 bg-gradient-to-r from-amber-100 to-orange-100 text-amber-800 text-xs font-bold rounded-lg">
                       Админ
                     </span>
                   )}
                   {student.isPremium && (
-                    <span className="text-amber-500 text-sm">✨</span>
+                    <span className="text-amber-500">✨</span>
                   )}
                 </div>
 
                 {student.username && (
-                  <p className="text-sm text-gray-500 mb-1">@{student.username}</p>
+                  <p className="text-sm text-gray-600 font-medium mb-2">@{student.username}</p>
                 )}
 
-                <div className="flex items-center gap-4 text-xs text-gray-500 mt-2">
-                  <div className="flex items-center gap-1">
-                    <span className="font-medium">Занятий:</span>
-                    <span className={`font-bold ${student.lessonsRemaining === 0 ? 'text-red-500' : 'text-green-600'}`}>
+                <div className="flex items-center gap-4 text-xs">
+                  <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-50 rounded-lg">
+                    <span className="font-bold text-gray-700">Занятий:</span>
+                    <span className={`font-bold ${student.lessonsRemaining === 0 ? 'text-red-600' : 'text-green-600'}`}>
                       {student.lessonsRemaining}
                     </span>
                   </div>
-                  <div>
-                    <span className="font-medium">Последний визит:</span>{' '}
+                  <div className="text-gray-600 font-medium">
                     {getTimeSinceLastVisit(student.lastVisitAt)}
                   </div>
                 </div>
               </div>
 
-              <div className="text-gray-400">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              <div className="text-gray-400 self-center">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
                 </svg>
               </div>
             </div>
@@ -342,9 +363,9 @@ export function StudentsList({ telegramId }: StudentsListProps) {
         ))}
 
         {students.length === 0 && (
-          <div className="p-8 text-center text-gray-500">
-            <p className="text-lg mb-2">📚</p>
-            <p>Пока нет зарегистрированных учеников</p>
+          <div className="p-10 text-center bg-gradient-to-br from-gray-50 to-gray-100 border-2 border-gray-200 rounded-2xl">
+            <div className="text-5xl mb-3">📚</div>
+            <p className="text-gray-600 font-medium">Пока нет зарегистрированных учеников</p>
           </div>
         )}
       </div>

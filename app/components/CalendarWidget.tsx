@@ -59,18 +59,18 @@ function Calendar({ currentDate, onDateClick, bookedDates }: CalendarProps) {
 
   return (
     <div>
-      <div className="text-center mb-4">
-        <h2 className="text-xl font-bold text-gray-800">
+      <div className="text-center mb-6">
+        <h2 className="text-2xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
           {monthNames[month]} {year}
         </h2>
       </div>
 
       {/* Дни недели */}
-      <div className="grid grid-cols-7 gap-2 mb-2">
+      <div className="grid grid-cols-7 gap-2 mb-3">
         {weekDays.map((day) => (
           <div
             key={day}
-            className="text-center text-sm font-semibold text-gray-600 py-2"
+            className="text-center text-sm font-bold text-gray-500 py-2"
           >
             {day}
           </div>
@@ -93,18 +93,19 @@ function Calendar({ currentDate, onDateClick, bookedDates }: CalendarProps) {
               key={index}
               onClick={() => !isPast && onDateClick(new Date(year, month, day))}
               className={`
-                aspect-square flex items-center justify-center rounded-lg text-sm font-medium relative
+                aspect-square flex items-center justify-center rounded-xl text-base font-semibold relative
+                transition-all duration-200
                 ${isPast
                   ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                   : isToday
-                    ? 'bg-blue-500 text-white font-bold cursor-pointer hover:bg-blue-600'
-                    : 'bg-gray-50 hover:bg-gray-100 cursor-pointer text-gray-900'
+                    ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white font-bold cursor-pointer hover:shadow-lg hover:scale-105'
+                    : 'bg-white border-2 border-gray-200 hover:border-blue-300 hover:shadow-md cursor-pointer text-gray-900 hover:scale-105'
                 }
               `}
             >
               {day}
               {hasBooking && !isPast && (
-                <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-1.5 h-1.5 bg-green-500 rounded-full"></div>
+                <div className="absolute bottom-1.5 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-green-500 rounded-full shadow-sm"></div>
               )}
             </div>
           );
@@ -223,9 +224,16 @@ export function CalendarWidget({ telegramId, isAdmin }: CalendarWidgetProps) {
     <div className="w-full">
       {/* Информация о занятиях для студента */}
       {!isAdmin && (
-        <div className="mb-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg">
-          <p className="text-sm text-gray-600 mb-1">Оставшиеся занятия:</p>
-          <p className="text-2xl font-bold text-gray-900">{lessonsRemaining}</p>
+        <div className="mb-6 p-5 bg-gradient-to-br from-purple-50 to-indigo-50 border-2 border-purple-100 rounded-2xl shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-md">
+              <span className="text-2xl">📚</span>
+            </div>
+            <div>
+              <p className="text-xs font-medium text-gray-600 mb-0.5">Доступно занятий</p>
+              <p className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">{lessonsRemaining}</p>
+            </div>
+          </div>
         </div>
       )}
 
@@ -233,10 +241,10 @@ export function CalendarWidget({ telegramId, isAdmin }: CalendarWidgetProps) {
       <div className="flex items-center justify-between mb-6">
         <button
           onClick={goToPreviousMonth}
-          className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+          className="p-3 hover:bg-gray-100 rounded-xl transition-all duration-200 hover:shadow-md active:scale-95"
         >
           <svg
-            className="w-6 h-6 text-gray-600"
+            className="w-6 h-6 text-gray-700"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -244,7 +252,7 @@ export function CalendarWidget({ telegramId, isAdmin }: CalendarWidgetProps) {
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
-              strokeWidth={2}
+              strokeWidth={2.5}
               d="M15 19l-7-7 7-7"
             />
           </svg>
@@ -252,17 +260,17 @@ export function CalendarWidget({ telegramId, isAdmin }: CalendarWidgetProps) {
 
         <button
           onClick={goToToday}
-          className="px-4 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+          className="px-5 py-2.5 text-sm font-bold text-white bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 active:scale-95"
         >
           Сегодня
         </button>
 
         <button
           onClick={goToNextMonth}
-          className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+          className="p-3 hover:bg-gray-100 rounded-xl transition-all duration-200 hover:shadow-md active:scale-95"
         >
           <svg
-            className="w-6 h-6 text-gray-600"
+            className="w-6 h-6 text-gray-700"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -270,7 +278,7 @@ export function CalendarWidget({ telegramId, isAdmin }: CalendarWidgetProps) {
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
-              strokeWidth={2}
+              strokeWidth={2.5}
               d="M9 5l7 7-7 7"
             />
           </svg>
@@ -285,18 +293,18 @@ export function CalendarWidget({ telegramId, isAdmin }: CalendarWidgetProps) {
       />
 
       {/* Легенда */}
-      <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-        <p className="text-sm text-gray-600 mb-2 font-medium">Обозначения:</p>
-        <div className="space-y-2 text-sm">
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-blue-500 rounded"></div>
-            <span className="text-gray-700">Сегодня</span>
+      <div className="mt-6 p-5 bg-gradient-to-br from-gray-50 to-gray-100 border-2 border-gray-200 rounded-2xl">
+        <p className="text-sm text-gray-700 mb-3 font-bold">Обозначения:</p>
+        <div className="space-y-2.5 text-sm">
+          <div className="flex items-center gap-3">
+            <div className="w-5 h-5 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-sm"></div>
+            <span className="text-gray-800 font-medium">Сегодня</span>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-gray-50 border border-gray-300 rounded relative">
-              <div className="absolute bottom-0.5 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-green-500 rounded-full"></div>
+          <div className="flex items-center gap-3">
+            <div className="w-5 h-5 bg-white border-2 border-gray-300 rounded-lg relative shadow-sm">
+              <div className="absolute bottom-0.5 left-1/2 transform -translate-x-1/2 w-1.5 h-1.5 bg-green-500 rounded-full"></div>
             </div>
-            <span className="text-gray-700">Есть занятие</span>
+            <span className="text-gray-800 font-medium">Есть занятие</span>
           </div>
         </div>
       </div>
