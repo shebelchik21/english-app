@@ -1,10 +1,29 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { Suspense, useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { CalendarWidget } from '../components/CalendarWidget';
 
-export default function CalendarPage() {
+function CalendarContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const telegramId = searchParams.get('telegramId');
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    if (!telegramId) {
+      router.push('/');
+      return;
+    }
+
+    // Проверяем, является ли пользователь админом
+    const adminIds = process.env.NEXT_PUBLIC_ADMIN_IDS?.split(',').map(id => Number(id.trim())) || [];
+    setIsAdmin(adminIds.includes(Number(telegramId)));
+  }, [telegramId, router]);
+
+  if (!telegramId) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
@@ -25,9 +44,23 @@ export default function CalendarPage() {
             <span>Календарь</span>
           </h1>
 
-          <CalendarWidget />
+          <CalendarWidget telegramId={Number(telegramId)} isAdmin={isAdmin} />
         </div>
       </div>
     </div>
+  );
+}
+
+export default function CalendarPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+        <div className="p-6 bg-white rounded-xl shadow-lg">
+          <p className="text-gray-600">Загрузка...</p>
+        </div>
+      </div>
+    }>
+      <CalendarContent />
+    </Suspense>
   );
 }

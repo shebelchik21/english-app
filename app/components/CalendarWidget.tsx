@@ -1,12 +1,15 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { TimeSlotSelector } from './TimeSlotSelector';
 
 interface CalendarProps {
   currentDate: Date;
+  onDateClick: (date: Date) => void;
+  bookedDates: Set<string>;
 }
 
-function Calendar({ currentDate }: CalendarProps) {
+function Calendar({ currentDate, onDateClick, bookedDates }: CalendarProps) {
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
 
@@ -43,6 +46,17 @@ function Calendar({ currentDate }: CalendarProps) {
     'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'
   ];
 
+  const isDateBooked = (day: number) => {
+    const dateString = new Date(year, month, day).toISOString().split('T')[0];
+    return bookedDates.has(dateString);
+  };
+
+  const isPastDate = (day: number) => {
+    const date = new Date(year, month, day);
+    const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    return date < todayStart;
+  };
+
   return (
     <div>
       <div className="text-center mb-4">
@@ -66,22 +80,32 @@ function Calendar({ currentDate }: CalendarProps) {
       {/* Календарная сетка */}
       <div className="grid grid-cols-7 gap-2">
         {days.map((day, index) => {
+          if (day === null) {
+            return <div key={index} className="aspect-square"></div>;
+          }
+
           const isToday = isCurrentMonth && day === todayDate;
+          const hasBooking = isDateBooked(day);
+          const isPast = isPastDate(day);
 
           return (
             <div
               key={index}
+              onClick={() => !isPast && onDateClick(new Date(year, month, day))}
               className={`
-                aspect-square flex items-center justify-center rounded-lg text-sm font-medium
-                ${day === null
-                  ? 'bg-transparent'
+                aspect-square flex items-center justify-center rounded-lg text-sm font-medium relative
+                ${isPast
+                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                   : isToday
-                    ? 'bg-blue-500 text-white font-bold'
+                    ? 'bg-blue-500 text-white font-bold cursor-pointer hover:bg-blue-600'
                     : 'bg-gray-50 hover:bg-gray-100 cursor-pointer text-gray-900'
                 }
               `}
             >
               {day}
+              {hasBooking && !isPast && (
+                <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-1.5 h-1.5 bg-green-500 rounded-full"></div>
+              )}
             </div>
           );
         })}
@@ -90,13 +114,52 @@ function Calendar({ currentDate }: CalendarProps) {
   );
 }
 
-export function CalendarWidget() {
+interface CalendarWidgetProps {
+  telegramId: number;
+  isAdmin: boolean;
+}
+
+export function CalendarWidget({ telegramId, isAdmin }: CalendarWidgetProps) {
   const [currentDate, setCurrentDate] = useState<Date | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [bookedDates, setBookedDates] = useState<Set<string>>(new Set());
+  const [lessonsRemaining, setLessonsRemaining] = useState<number>(0);
 
   // Инициализируем дату только на клиенте
   useEffect(() => {
     setCurrentDate(new Date());
+    fetchBookedDates();
+    if (!isAdmin) {
+      fetchLessonsRemaining();
+    }
   }, []);
+
+  const fetchBookedDates = async () => {
+    try {
+      // Получаем бронирования для текущего месяца
+      const year = new Date().getFullYear();
+      const month = new Date().getMonth();
+      const startDate = new Date(year, month, 1).toISOString().split('T')[0];
+      const endDate = new Date(year, month + 1, 0).toISOString().split('T')[0];
+
+      // Здесь можно добавить API endpoint для получения всех забронированных дат за месяц
+      // Пока просто обновляем после каждого бронирования
+    } catch (error) {
+      console.error('Failed to fetch booked dates:', error);
+    }
+  };
+
+  const fetchLessonsRemaining = async () => {
+    try {
+      const response = await fetch(`/api/users/lessons?telegramId=${telegramId}`);
+      if (response.ok) {
+        const data = await response.json();
+        setLessonsRemaining(data.lessonsRemaining);
+      }
+    } catch (error) {
+      console.error('Failed to fetch lessons:', error);
+    }
+  };
 
   const goToPreviousMonth = () => {
     if (!currentDate) return;
@@ -110,6 +173,21 @@ export function CalendarWidget() {
 
   const goToToday = () => {
     setCurrentDate(new Date());
+  };
+
+  const handleDateClick = (date: Date) => {
+    if (!isAdmin && lessonsRemaining <= 0) {
+      alert('У вас не осталось занятий. Обратитесь к администратору.');
+      return;
+    }
+    setSelectedDate(date);
+  };
+
+  const handleBookingComplete = () => {
+    fetchBookedDates();
+    if (!isAdmin) {
+      fetchLessonsRemaining();
+    }
   };
 
   // Показываем скелетон пока не загрузилось
@@ -132,6 +210,14 @@ export function CalendarWidget() {
 
   return (
     <div className="w-full">
+      {/* Информация о занятиях для студента */}
+      {!isAdmin && (
+        <div className="mb-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg">
+          <p className="text-sm text-gray-600 mb-1">Оставшиеся занятия:</p>
+          <p className="text-2xl font-bold text-gray-900">{lessonsRemaining}</p>
+        </div>
+      )}
+
       {/* Навигация */}
       <div className="flex items-center justify-between mb-6">
         <button
@@ -181,14 +267,39 @@ export function CalendarWidget() {
       </div>
 
       {/* Календарь */}
-      <Calendar currentDate={currentDate} />
+      <Calendar
+        currentDate={currentDate}
+        onDateClick={handleDateClick}
+        bookedDates={bookedDates}
+      />
 
-      {/* Подсказка */}
-      <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-        <p className="text-sm text-blue-800">
-          💡 Здесь будет отображаться расписание занятий
-        </p>
+      {/* Легенда */}
+      <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+        <p className="text-sm text-gray-600 mb-2 font-medium">Обозначения:</p>
+        <div className="space-y-2 text-sm">
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 bg-blue-500 rounded"></div>
+            <span className="text-gray-700">Сегодня</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 bg-gray-50 border border-gray-300 rounded relative">
+              <div className="absolute bottom-0.5 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-green-500 rounded-full"></div>
+            </div>
+            <span className="text-gray-700">Есть занятие</span>
+          </div>
+        </div>
       </div>
+
+      {/* Модальное окно выбора времени */}
+      {selectedDate && (
+        <TimeSlotSelector
+          selectedDate={selectedDate}
+          telegramId={telegramId}
+          isAdmin={isAdmin}
+          onClose={() => setSelectedDate(null)}
+          onBookingComplete={handleBookingComplete}
+        />
+      )}
     </div>
   );
 }

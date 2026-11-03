@@ -18,7 +18,7 @@ export function Menu({ isAdmin, telegramId }: MenuProps) {
 
       <div className="space-y-3">
         <button
-          onClick={() => router.push('/calendar')}
+          onClick={() => router.push(`/calendar?telegramId=${telegramId}`)}
           className="w-full p-4 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold transition-colors flex items-center justify-between"
         >
           <span>📅 Календарь</span>

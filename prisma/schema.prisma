@@ -24,6 +24,20 @@ model User {
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
   lastVisitAt      DateTime  @default(now())
+  bookings         Booking[]
 
   @@map("users")
+}
+
+model Booking {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date      DateTime @db.Date
+  time      DateTime @db.Time
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([date, time])
+  @@map("bookings")
 }
