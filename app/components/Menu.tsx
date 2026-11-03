@@ -1,10 +1,15 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
+
 interface MenuProps {
   isAdmin: boolean;
+  telegramId: number;
 }
 
-export function Menu({ isAdmin }: MenuProps) {
+export function Menu({ isAdmin, telegramId }: MenuProps) {
+  const router = useRouter();
+
   return (
     <div className="w-full max-w-md p-6 bg-white rounded-xl shadow-lg">
       <h1 className="text-2xl font-bold mb-6 text-gray-800">
@@ -12,13 +17,19 @@ export function Menu({ isAdmin }: MenuProps) {
       </h1>
 
       <div className="space-y-3">
-        <button className="w-full p-4 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold transition-colors flex items-center justify-between">
+        <button
+          onClick={() => router.push('/calendar')}
+          className="w-full p-4 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold transition-colors flex items-center justify-between"
+        >
           <span>📅 Календарь</span>
           <span className="text-xl">→</span>
         </button>
 
         {isAdmin && (
-          <button className="w-full p-4 bg-green-500 hover:bg-green-600 text-white rounded-lg font-semibold transition-colors flex items-center justify-between">
+          <button
+            onClick={() => router.push(`/students?telegramId=${telegramId}`)}
+            className="w-full p-4 bg-green-500 hover:bg-green-600 text-white rounded-lg font-semibold transition-colors flex items-center justify-between"
+          >
             <span>👥 Ученики</span>
             <span className="text-xl">→</span>
           </button>

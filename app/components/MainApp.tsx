@@ -71,5 +71,5 @@ export function MainApp() {
     );
   }
 
-  return <Menu isAdmin={isAdmin} />;
+  return <Menu isAdmin={isAdmin} telegramId={userId} />;
 }
