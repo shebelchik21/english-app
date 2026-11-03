@@ -25,8 +25,11 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Получаем всех пользователей, отсортированных по дате последнего визита
+    // Получаем всех пользователей (кроме админов), отсортированных по дате последнего визита
     const users = await prisma.user.findMany({
+      where: {
+        isAdmin: false,
+      },
       orderBy: {
         lastVisitAt: 'desc',
       },

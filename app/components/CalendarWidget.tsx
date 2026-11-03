@@ -128,22 +128,33 @@ export function CalendarWidget({ telegramId, isAdmin }: CalendarWidgetProps) {
   // Инициализируем дату только на клиенте
   useEffect(() => {
     setCurrentDate(new Date());
-    fetchBookedDates();
     if (!isAdmin) {
       fetchLessonsRemaining();
     }
   }, []);
 
-  const fetchBookedDates = async () => {
-    try {
-      // Получаем бронирования для текущего месяца
-      const year = new Date().getFullYear();
-      const month = new Date().getMonth();
-      const startDate = new Date(year, month, 1).toISOString().split('T')[0];
-      const endDate = new Date(year, month + 1, 0).toISOString().split('T')[0];
+  // Загружаем забронированные даты при изменении месяца
+  useEffect(() => {
+    if (currentDate) {
+      fetchBookedDates();
+    }
+  }, [currentDate]);
 
-      // Здесь можно добавить API endpoint для получения всех забронированных дат за месяц
-      // Пока просто обновляем после каждого бронирования
+  const fetchBookedDates = async () => {
+    if (!currentDate) return;
+
+    try {
+      const year = currentDate.getFullYear();
+      const month = currentDate.getMonth();
+
+      const response = await fetch(
+        `/api/bookings/dates?year=${year}&month=${month}&telegramId=${telegramId}`
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        setBookedDates(new Set(data.dates));
+      }
     } catch (error) {
       console.error('Failed to fetch booked dates:', error);
     }
