@@ -312,7 +312,7 @@ export function TimeSlotSelector({ selectedDate, telegramId, isAdmin, onClose, o
         <div className="space-y-3">
           {slots.map((slot) => {
             const isMyBooking = slot.booking && !isAdmin;
-            const canCancel = isMyBooking;
+            const canCancel = slot.booking && (isAdmin || isMyBooking);
 
             return (
               <div
