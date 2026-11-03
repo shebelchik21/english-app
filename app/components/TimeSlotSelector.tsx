@@ -7,6 +7,8 @@ interface TimeSlot {
   isBooked: boolean;
   booking: {
     id: number;
+    userId: number;
+    telegramId: string;
     studentName: string;
     username?: string;
   } | null;
@@ -311,8 +313,12 @@ export function TimeSlotSelector({ selectedDate, telegramId, isAdmin, onClose, o
 
         <div className="space-y-3">
           {slots.map((slot) => {
-            const isMyBooking = slot.booking && !isAdmin;
-            const canCancel = slot.booking && (isAdmin || isMyBooking);
+            // Проверяем, является ли это бронирование текущего пользователя
+            const isMyBooking = slot.booking && slot.booking.telegramId === telegramId.toString();
+
+            // Для студентов: показываем кнопку отмены только для своих бронирований
+            // Для админа: показываем кнопку отмены для всех бронирований
+            const canCancel = isAdmin ? !!slot.booking : isMyBooking;
 
             return (
               <div
@@ -338,7 +344,9 @@ export function TimeSlotSelector({ selectedDate, telegramId, isAdmin, onClose, o
                       <p className="font-bold text-gray-900 text-lg">
                         {slot.time}
                       </p>
-                      {slot.booking && (
+
+                      {/* Для админа показываем информацию о студенте */}
+                      {isAdmin && slot.booking && (
                         <div className="text-sm mt-1">
                           <p className="text-gray-800 font-semibold">
                             {slot.booking.studentName}
@@ -350,6 +358,21 @@ export function TimeSlotSelector({ selectedDate, telegramId, isAdmin, onClose, o
                           )}
                         </div>
                       )}
+
+                      {/* Для студента показываем только статус */}
+                      {!isAdmin && slot.isBooked && !isMyBooking && (
+                        <p className="text-sm text-red-700 font-medium">
+                          Занято
+                        </p>
+                      )}
+
+                      {/* Для студента показываем "Моё занятие" если это его бронирование */}
+                      {!isAdmin && isMyBooking && (
+                        <p className="text-sm text-blue-700 font-medium">
+                          Моё занятие
+                        </p>
+                      )}
+
                       {!slot.isBooked && (
                         <p className="text-sm text-green-700 font-medium">
                           Свободно

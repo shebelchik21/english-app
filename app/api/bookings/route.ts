@@ -22,6 +22,8 @@ export async function GET(request: NextRequest) {
       include: {
         user: {
           select: {
+            id: true,
+            telegramId: true,
             firstName: true,
             lastName: true,
             username: true,
@@ -44,6 +46,8 @@ export async function GET(request: NextRequest) {
         isBooked: !!booking,
         booking: booking ? {
           id: booking.id,
+          userId: booking.user.id,
+          telegramId: booking.user.telegramId.toString(),
           studentName: `${booking.user.firstName} ${booking.user.lastName || ''}`.trim(),
           username: booking.user.username,
         } : null,
